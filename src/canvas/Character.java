@@ -4,6 +4,7 @@
  */
 package canvas;
 import processing.core.PApplet;
+import static processing.core.PApplet.constrain;
 import processing.core.PImage;
 /**
  *
@@ -23,11 +24,17 @@ public class Character {
         this.name = name;
         this.stats = stats;
         this.image = app.loadImage(imagePath);
+        
+        if (name.equals("Hou Yi"))
+            image.resize(100, 100);
     }
     
     public void move(int dx, int dy) {
-        x += dx;
-        y += dy;
+        x += dx * stats.getSpeed();
+        y += dy * stats.getSpeed();
+        
+        x = constrain(x, 10, 590); // keep player character inside of screen
+        y = constrain(y, 10, 290);
     }
     
     public void damage(int amount) {
