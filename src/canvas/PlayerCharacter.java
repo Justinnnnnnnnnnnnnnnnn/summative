@@ -31,6 +31,6 @@ public class PlayerCharacter extends Character {
     }
     
     public void attack() {
-        System.out.println("Attacked!"); // placeholder
+        System.out.println("Attacked!"); // PLACEHOLDER
     }
 }

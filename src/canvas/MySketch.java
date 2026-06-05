@@ -5,13 +5,22 @@
 package canvas;
 import processing.core.PApplet;
 import processing.core.PImage;
+import java.util.ArrayList;
+import java.util.Random;
 
 public class MySketch extends PApplet {
-    private Character Player; 
     private PImage background;
-    private boolean up, down, left, right; // movement booleans
     private int stage = 0;
+    
+    private Character Player; 
+    private boolean up, down, left, right; // movement booleans
+    private int IFramesCooldown = 0;
+    private int I_FRAMES_LIMIT = 30; // 0.5 seconds of invincibility
 
+    private ArrayList<Character> enemiesList = new ArrayList<>(); // stores all enemies
+    private int enemySpawnCooldown = 180;
+    private int enemySpawnTick = 0;
+    
     @Override
     public void settings() {
         size(700, 400);
@@ -20,7 +29,7 @@ public class MySketch extends PApplet {
     @Override
     public void setup() {
         background = loadImage("images/ScorchedBackground.png");
-        Player = new PlayerCharacter(this, 50, 30, "Hou Yi", new StatBlock(100, 1), "images/houyi.png"); 
+        Player = new PlayerCharacter(this, 50, 30, "Hou Yi", new StatBlock(5, 1), "images/houyi.png"); 
     }
 
     @Override
@@ -32,11 +41,57 @@ public class MySketch extends PApplet {
             text("My Cultural Story", 20, 50);
             text("Press enter to continue", 20, 100);
         } else if (stage == 1) {
-            movePlayer();
-            Player.draw();
+            combatHandler();
+        }
+    }
+    
+    public void combatHandler() {
+        movePlayer();
+        Player.draw();
+        collisionHandler();
+        moveEnemy();
+        spawnEnemy();
+    }
+    
+    public void collisionHandler() {
+        // check if enemies are colliding with player
+        for (Character enemy: enemiesList) {
+            if (Player.isCollidingWith(enemy)) {
+                if (IFramesCooldown == 0) { // damage player if not invincibile
+                    IFramesCooldown = 30; // activate invicibility frames
+                    Player.damage(1);
+                    enemy.damage(999); // destroy enemy after hitting player
+                }
+                break;
+            }
+        }
+        
+        if (IFramesCooldown > 0) {
+            IFramesCooldown -= 1;
+        }
+    }
+    
+    public void moveEnemy() {
+        for (Character enemy: enemiesList) { // move every enemy forwards
+            enemy.move(-1, 0);
+            enemy.draw();
+        }
+        
+        enemiesList.removeIf(e -> e.x < 0); // remove enemy
+    }
+    
+    public void spawnEnemy() {
+        enemySpawnTick++; // progress time until next enemy spawn
+        if (enemySpawnTick >= enemySpawnCooldown) {
+            enemySpawnTick = 0; // reset counter back to 0
+            
+            int spawnY = new Random().nextInt(300) + 10; // spawn enemy at random position
+            enemiesList.add(new Character(this, 700, spawnY, "Sun", new StatBlock(1, 1), "images/Enemy_Sun.png"));
         }
     }
 
+    // PLAYER CONTROL HANDLING
+    
     public void movePlayer() {
         int dx = 0, dy = 0;
         // check all directions player can move in
