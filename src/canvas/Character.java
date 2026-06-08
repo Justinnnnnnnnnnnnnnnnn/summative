@@ -12,8 +12,9 @@ import processing.core.PImage;
  */
 public class Character {
     public int x, y;
-    private String name; // name of the person
-    private StatBlock stats; // age of the person
+    public boolean alive = true;
+    private String name; // name of the character
+    private StatBlock stats; // health and speed of character
     private PImage image;
     private PApplet app;
     
@@ -44,7 +45,12 @@ public class Character {
     
     public void damage(int amount) {
         stats.setHealth(stats.getHealth() - amount);
-        System.out.println("Health: " + stats.getHealth());
+        if (stats.getHealth() < 1) // kill character when health goes below critical
+            kill();
+    }
+    
+    public void kill() {
+        alive = false;
     }
     
     public void draw() {
@@ -61,4 +67,12 @@ public class Character {
         // returns true if two characters are touching
         return isLeftOtherRight && isRightOtherLeft && isAboveOtherBottom && isBelowOtherTop;
     } // end isCollidingWith
+    
+    public StatBlock getStats() {
+        return stats;
+    }
+    
+    public PImage getImage() {
+        return image;
+    }
 }
