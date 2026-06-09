@@ -30,7 +30,7 @@ public class Character {
             image.resize(100, 100);
         } else if (name.equals("Sun")) {
             image.resize(70, 70);
-        }
+        } 
     }
     
     public void move(int dx, int dy) {
@@ -51,6 +51,10 @@ public class Character {
     
     public void kill() {
         alive = false;
+    }
+    
+    public void revive() {
+        alive = true;
     }
     
     public void draw() {

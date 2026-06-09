@@ -7,6 +7,11 @@ import processing.core.PApplet;
 import processing.core.PImage;
 import java.util.ArrayList;
 import java.util.Random;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.File;
+import java.util.Scanner;
 
 public class MySketch extends PApplet {
     private PImage background;
@@ -22,6 +27,7 @@ public class MySketch extends PApplet {
     private ArrayList<Character> enemiesList = new ArrayList<>(); // stores all enemies
     private double enemySpawnCooldown = 180;
     private int enemySpawnTick = 0;
+    private final int DIFFICULTY_SCALING = 150; // default is 300
     
     private ArrayList<Projectile> projectilesList = new ArrayList<>(); // store all projectiles
     
@@ -34,7 +40,7 @@ public class MySketch extends PApplet {
     @Override
     public void setup() {
         background = loadImage("images/ScorchedBackground.png");
-        Player = new PlayerCharacter(this, 50, 30, "Hou Yi", new StatBlock(5, 1), "images/houyi.png"); 
+        Player = new PlayerCharacter(this, 50, 120, "Hou Yi", new StatBlock(5, 1), "images/houyi.png"); 
     }
 
     @Override
@@ -47,11 +53,16 @@ public class MySketch extends PApplet {
                 fill(255);
                 text("My Cultural Story", 20, 50);
                 text("Press enter to begin", 20, 100);
+                text("Score: " + score, 20, 150);
+                text("Highscore: " + highscore, 20, 200);
             }
             case 1 -> {
                 // Combat
                 scoreHandler();
                 combatHandler();
+                if (!(Player.alive)) { // end if player died
+                    stage = 2;
+                }
             }
             case 2 -> {
                 // Defeat Screen
@@ -66,27 +77,50 @@ public class MySketch extends PApplet {
     }
     
     public void scoreHandler() {
-        score++;
-        if (score > highscore) { // track highscore
-            highscore = score;
-        }
+        if (stage == 1) { // active combat
+            score++;
 
-        if (score % 300 == 0) { // increase enemy spawnrate at higher score
-            enemySpawnCooldown = enemySpawnCooldown * 0.9;
-        }   if (!(Player.alive)) { // end if player died
-            stage = 2;
+            if (score % DIFFICULTY_SCALING == 0) { // increase enemy spawnrate at higher score
+                enemySpawnCooldown = enemySpawnCooldown * 0.9;
+            }
+            
+            fill(255); // display current score in top left of screen
+            text("Score: " + score, 20, 30);
+        } 
+        else if (stage == 2) { // after defeat
+            
+            try { // store score to text file
+                PrintWriter output = new PrintWriter( new FileWriter( "src/ScoreList.txt", true) );
+                output.println(score + "");
+                output.close();
+            } catch ( IOException ioException ) {
+                System.err.println( "Java Exception: " + ioException );
+            }
+            
+            try { // read to find highscore
+                Scanner fileInput = new Scanner( new File("src/ScoreList.txt") );
+                while (fileInput.hasNext()){
+                    int sc = fileInput.nextInt();
+                    if (sc > highscore) {
+                        highscore = sc;
+                    }
+                }
+                fileInput.close();
+            } catch ( IOException ioException ) {
+                System.err.println( "Java Exception: " + ioException);
+            }
         }
-        
-        fill(255); // display current score in top left of screen
-        text("Score: " + score, 20, 30);
     }
     
     public void combatHandler() {
         movePlayer();
         Player.draw();
+        ((PlayerCharacter) Player).decrementAttackCooldown();
+        
         collisionHandler();
         moveEnemy();
         spawnEnemy();
+        moveProjectiles();
         
         fill(255); // display health in bottom left of screen
         text("Health: " + Player.getStats().getHealth(), 20, 380);
@@ -104,11 +138,9 @@ public class MySketch extends PApplet {
                 break;
             } else {
                 for (Projectile proj: projectilesList) {
-                    if (proj.getTeam()) { // check if ally projectile
-                        if (proj.isCollidingWith(enemy)) { // check if projectile hit enemy
-                            enemy.kill();
-                            proj.decreasePierce();
-                        }
+                    if (proj.getTeam() && proj.isCollidingWith(enemy)) { // check if friendly projectile and hits enemy
+                        enemy.kill();
+                        proj.decreasePierce();
                     }
                 }
             }
@@ -119,26 +151,35 @@ public class MySketch extends PApplet {
         }
     }
     
+    public void resetCombat() {
+        Player.getStats().setHealth(3); // reset health
+        Player.revive();
+        Player.x = 50; // reset position
+        Player.y = 120;
+        score = 0; // reset score
+        enemySpawnTick = 0; // reset difficulty
+        enemySpawnCooldown = DIFFICULTY_SCALING;
+        enemiesList.clear(); // clean lists
+        projectilesList.clear();
+    }
+    
     // PROJECTILE HANDLING
     
     public void moveProjectiles() {
         for (Projectile proj: projectilesList) { // move every projectile in launched direction
             if (proj.getTeam()) { // true is friendly projectile
                 proj.move(1, 0);
-            } else if (!(proj.getTeam())) { // false is enemy projectile
+            } else { // false is enemy projectile
                 proj.move(-1, 0);
             }
+            proj.draw(); // draw projectile
         }
         
-        projectilesList.removeIf(p -> p.getPierce() < 0); // destroy projectile if out of pierce
+        projectilesList.removeIf(p -> p.x > 710 || p.x < -100 || p.getPierce() < 0); // destroy projectile if off the map or out of pierce
     }
     
-    public void createProjectile(boolean team, int damage, int velocity, int pierce, String name, String imagePath) {
-        if (team) { // player projectile
-            projectilesList.add(new Projectile(this, Player.x + 60, Player.y + 30, team, damage, velocity, pierce, name, imagePath));
-        } else if (!(team)) { // enemy projectile
-            projectilesList.add(new Projectile(this, 700, 200, team, damage, velocity, pierce, name, imagePath));
-        }
+    public void createProjectile(boolean team, int x, int y, int damage, int velocity, int pierce, String name, String imagePath) {
+        projectilesList.add(new Projectile(this, x, y, team, damage, velocity, pierce, name, imagePath));
     }
     
     // ENEMY HANDLING
@@ -146,10 +187,10 @@ public class MySketch extends PApplet {
     public void moveEnemy() {
         for (Character enemy: enemiesList) { // move every enemy forwards
             enemy.move(-1, 0);
-            enemy.draw();
+            enemy.draw(); // draw enemy
         }
         
-        enemiesList.removeIf(e -> e.x < -10 || !(e.alive)); // remove enemy if off the map or is dead
+        enemiesList.removeIf(e -> e.x < -100 || !(e.alive)); // remove enemy if off the map or is dead
     }
     
     public void spawnEnemy() {
@@ -206,12 +247,14 @@ public class MySketch extends PApplet {
     @Override
     public void keyPressed() {
         if (stage == 0 && keyCode == ENTER) {
+            resetCombat();
             stage = 1; // start combat
             
         } else if (stage == 1) {
             setMovement(keyCode, true); // add direction to movement
             
         } else if (stage == 2 && keyCode == ENTER) {
+            scoreHandler(); // update scorelist
             stage = 0; // return to menu on defeat
         }
     }
@@ -225,7 +268,7 @@ public class MySketch extends PApplet {
     
     @Override
     public void mouseClicked() {
-        if (mouseButton == LEFT)
+        if (mouseButton == LEFT && stage == 1)
             ((PlayerCharacter) Player).attack();
     }
 }//end class

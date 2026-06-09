@@ -28,14 +28,13 @@ public class Projectile {
         this.name = name;
         this.image = app.loadImage(imagePath);
         
-        if (name.equals("Fire Arrow")) {
-            image.resize(100, 100);
+        if (name.equals("Arrow")) {
+            image.resize(100, 30);
         }
     }
     
     public void move(int dx, int dy) {
         x += dx * velocity;
-        y += dy * velocity;
     }
     
     public boolean getTeam() {
@@ -52,6 +51,10 @@ public class Projectile {
     
     public void decreasePierce() {
         pierce -= 1;
+    }
+    
+    public void draw() {
+        app.image(image, x, y);
     }
     
     public boolean isCollidingWith(Character other) {

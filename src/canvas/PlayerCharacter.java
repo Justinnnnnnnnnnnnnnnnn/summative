@@ -10,9 +10,10 @@ import processing.core.PApplet;
  * @author 344813928
  */
 public class PlayerCharacter extends Character {
-    private int attackSpeed = 60;
     private int attackDamage = 1;
     private int attackPierce = 0;
+    private int attackSpeed = 60;
+    private int attackCooldown = 0;
     private MySketch sketch;
     
     public PlayerCharacter(PApplet p, int x, int y, String name, StatBlock stats, String imagePath) {
@@ -32,7 +33,16 @@ public class PlayerCharacter extends Character {
         this.attackPierce = attackPierce;
     }
     
+    public void decrementAttackCooldown() {
+        if (attackCooldown > 0) {
+            attackCooldown -= 1;
+        }
+    }
+    
     public void attack() {
-        // sketch.createProjectile(true, attackDamage, 90, attackPierce, "Arrow", "images/playerArrow.png");
+        if (attackCooldown == 0) {
+            attackCooldown = attackSpeed; // activate attack cooldown
+            sketch.createProjectile(true, x + 50, y + 30, attackDamage, 3, attackPierce, "Arrow", "images/playerArrow.png");
+        }
     }
 }
