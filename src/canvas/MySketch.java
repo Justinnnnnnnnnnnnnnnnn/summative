@@ -15,6 +15,7 @@ import java.util.Scanner;
 
 public class MySketch extends PApplet {
     private PImage background;
+    private Button resetDataButton;
     private int stage = 0;
     private int score = 0;
     private int highscore = 0;
@@ -40,7 +41,8 @@ public class MySketch extends PApplet {
     @Override
     public void setup() {
         background = loadImage("images/ScorchedBackground.png");
-        Player = new PlayerCharacter(this, 50, 120, "Hou Yi", new StatBlock(5, 1), "images/houyi.png"); 
+        resetDataButton = new Button(this, 580, 270, "images/change.png");
+        Player = new PlayerCharacter(this, 50, 120, "Hou Yi", new StatBlock(3, 1), "images/houyi.png"); 
     }
 
     @Override
@@ -55,6 +57,7 @@ public class MySketch extends PApplet {
                 text("Press enter to begin", 20, 100);
                 text("Score: " + score, 20, 150);
                 text("Highscore: " + highscore, 20, 200);
+                resetDataButton.draw();
             }
             case 1 -> {
                 // Combat
@@ -104,6 +107,7 @@ public class MySketch extends PApplet {
                     if (sc > highscore) {
                         highscore = sc;
                     }
+                    System.out.println("score: " + sc);
                 }
                 fileInput.close();
             } catch ( IOException ioException ) {
@@ -151,11 +155,25 @@ public class MySketch extends PApplet {
         }
     }
     
+    public void resetScore() {
+        try (PrintWriter w = new PrintWriter("src/ScoreList.txt")) {
+            // clear score text file
+        } catch ( IOException ioException ) {
+                System.err.println( "Java Exception: " + ioException);
+        }
+        score = 0; // reset scores and highscore
+        highscore = 0;
+    }
+    
     public void resetCombat() {
         Player.getStats().setHealth(3); // reset health
         Player.revive();
         Player.x = 50; // reset position
         Player.y = 120;
+        setMovement(LEFT, false); // reset movement to idle
+        setMovement(RIGHT, false);
+        setMovement(UP, false);
+        setMovement(DOWN, false);
         score = 0; // reset score
         enemySpawnTick = 0; // reset difficulty
         enemySpawnCooldown = DIFFICULTY_SCALING;
@@ -270,5 +288,7 @@ public class MySketch extends PApplet {
     public void mouseClicked() {
         if (mouseButton == LEFT && stage == 1)
             ((PlayerCharacter) Player).attack();
+        else if (stage == 0 && resetDataButton.isClicked(mouseX, mouseY))
+            resetScore();
     }
 }//end class
