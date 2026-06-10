@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package canvas;
+import java.util.ArrayList;
 import processing.core.PApplet;
 import processing.core.PImage;
 /**
@@ -14,6 +15,7 @@ public class Projectile {
     private int damage, velocity, pierce;
     private String name;
     private boolean team; // true = ally, false = enemy
+    private ArrayList<Character> piercedTargets = new ArrayList<>(); // stores all pierced targets
     private PImage image;
     private PApplet app;
     
@@ -53,6 +55,10 @@ public class Projectile {
         pierce -= 1;
     }
     
+    public ArrayList getPiercedTargets() {
+        return piercedTargets;
+    }
+    
     public void draw() {
         app.image(image, x, y);
     }
@@ -67,4 +73,8 @@ public class Projectile {
         // returns true if two characters are touching
         return isLeftOtherRight && isRightOtherLeft && isAboveOtherBottom && isBelowOtherTop;
     } // end isCollidingWith
+    
+    public void pierceTarget(Character target) {
+        piercedTargets.add(target);
+    }
 }

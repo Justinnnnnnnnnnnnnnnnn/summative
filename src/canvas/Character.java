@@ -30,6 +30,10 @@ public class Character {
             image.resize(100, 100);
         } else if (name.equals("Sun")) {
             image.resize(70, 70);
+        } else if (name.equals("MiniSun")) {
+            image.resize(50, 50);
+        } else if (name.equals("MegaSun")) {
+            image.resize(100, 100);
         } 
     }
     

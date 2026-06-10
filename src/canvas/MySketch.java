@@ -22,6 +22,7 @@ public class MySketch extends PApplet {
     
     private Character Player; 
     private boolean up, down, left, right; // movement booleans
+    private boolean lmbHeld = false; // attacking boolean
     private int IFramesCooldown = 0;
     private final int I_FRAMES_LIMIT = 30; // 0.5 seconds of invincibility
 
@@ -107,7 +108,6 @@ public class MySketch extends PApplet {
                     if (sc > highscore) {
                         highscore = sc;
                     }
-                    System.out.println("score: " + sc);
                 }
                 fileInput.close();
             } catch ( IOException ioException ) {
@@ -119,7 +119,10 @@ public class MySketch extends PApplet {
     public void combatHandler() {
         movePlayer();
         Player.draw();
-        ((PlayerCharacter) Player).decrementAttackCooldown();
+        ((PlayerCharacter) Player).decrementAttackCooldown(); // cooldown player attack
+        if (lmbHeld) {
+            ((PlayerCharacter)Player).attack();
+        }
         
         collisionHandler();
         moveEnemy();
@@ -143,8 +146,11 @@ public class MySketch extends PApplet {
             } else {
                 for (Projectile proj: projectilesList) {
                     if (proj.getTeam() && proj.isCollidingWith(enemy)) { // check if friendly projectile and hits enemy
-                        enemy.kill();
-                        proj.decreasePierce();
+                        if (!(proj.getPiercedTargets().contains(enemy))) {
+                            enemy.damage(proj.getDamage());
+                            proj.decreasePierce();
+                            proj.pierceTarget(enemy); // target wont get hit again by same projectile
+                        }
                     }
                 }
             }
@@ -217,7 +223,18 @@ public class MySketch extends PApplet {
             enemySpawnTick = 0; // reset counter back to 0
             
             int spawnY = new Random().nextInt(300) + 10; // spawn enemy at random position
-            enemiesList.add(new Character(this, 700, spawnY, "Sun", new StatBlock(1, 1), "images/Enemy_Sun.png"));
+            int type = new Random().nextInt(3); // select one of 3 enemy types
+            switch (type) {
+                case 0 -> { // basic enemy
+                    enemiesList.add(new Character(this, 700, spawnY, "Sun", new StatBlock(1, 1), "images/Enemy_Sun.png"));
+                }
+                case 1 -> { // fast enemy
+                    enemiesList.add(new Character(this, 700, spawnY, "MiniSun", new StatBlock(1, 2), "images/Enemy_Sun.png"));
+                }
+                case 2 -> { // tanky enemy
+                    enemiesList.add(new Character(this, 700, spawnY, "MegaSun", new StatBlock(2, 1), "images/Enemy_Sun.png"));
+                }
+            }
         }
     }
 
@@ -285,10 +302,22 @@ public class MySketch extends PApplet {
     }
     
     @Override
+    public void mousePressed() {
+        if (mouseButton == LEFT && stage == 1) {
+            lmbHeld = true;
+        }
+    }
+    
+    @Override
+    public void mouseReleased() {
+        if (mouseButton == LEFT && stage == 1) {
+            lmbHeld = false;
+        }
+    }
+    
+    @Override
     public void mouseClicked() {
-        if (mouseButton == LEFT && stage == 1)
-            ((PlayerCharacter) Player).attack();
-        else if (stage == 0 && resetDataButton.isClicked(mouseX, mouseY))
+        if (stage == 0 && resetDataButton.isClicked(mouseX, mouseY))
             resetScore();
     }
 }//end class

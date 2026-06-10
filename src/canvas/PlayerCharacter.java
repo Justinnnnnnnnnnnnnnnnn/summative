@@ -11,14 +11,14 @@ import processing.core.PApplet;
  */
 public class PlayerCharacter extends Character {
     private int attackDamage = 1;
-    private int attackPierce = 0;
+    private int attackPierce = 1;
     private int attackSpeed = 60;
     private int attackCooldown = 0;
-    private MySketch sketch;
+    private static MySketch sketch;
     
     public PlayerCharacter(PApplet p, int x, int y, String name, StatBlock stats, String imagePath) {
         super(p, x, y, name, stats, imagePath);
-        this.sketch = (MySketch) p;
+        sketch = (MySketch) p;
     }
     
     public void setAttackSpeed(int attackSpeed) {
