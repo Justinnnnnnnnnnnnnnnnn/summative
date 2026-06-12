@@ -307,7 +307,7 @@ public class MySketch extends PApplet {
             enemySpawnTick = 0; // reset counter back to 0
             
             int spawnY = new Random().nextInt(300) + 10; // spawn enemy at random position
-            int type = new Random().nextInt(4); // select one of 3 enemy types
+            int type = new Random().nextInt(5); // select one of 5 enemy types
             switch (type) {
                 case 0 -> { // basic enemy
                     enemiesList.add(new Character(this, 700, spawnY, "Sun", new StatBlock(1, 1), "images/Enemy_Sun.png"));
