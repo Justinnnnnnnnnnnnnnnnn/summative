@@ -45,6 +45,8 @@ public class Character {
             image.resize(100, 100);
         } else if (name.equals("SuperMegaSun")) {
             image.resize(160, 160);
+        } else if (name.equals("VolatileSun")) {
+            image.resize(200, 200);
         } 
     }
     

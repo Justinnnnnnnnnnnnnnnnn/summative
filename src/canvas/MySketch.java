@@ -26,13 +26,12 @@ public class MySketch extends PApplet {
     private boolean lmbHeld = false; // attacking boolean
     private int IFramesCooldown = 0;
     private final int I_FRAMES_LIMIT = 30; // 0.5 seconds of invincibility
-    private ArrayList<String> upgradesList = new ArrayList<>(); // stores all player upgrades
     private int upgradeChoice = 0;
 
     private ArrayList<Character> enemiesList = new ArrayList<>(); // stores all enemies
     private double enemySpawnCooldown = 180;
     private int enemySpawnTick = 0;
-    private final int DIFFICULTY_SCALING = 150; // default is 300
+    private final int DIFFICULTY_SCALING = 300; // default is 300
     
     private ArrayList<Projectile> projectilesList = new ArrayList<>(); // store all projectiles
     
@@ -225,7 +224,7 @@ public class MySketch extends PApplet {
         fill(255); // display upgrade options
         text("Press number key to select upgrade", 200, 100);
         text("(1) Terminal Velocity: +100% movement speed", 200, 120);
-        text("(2) Quickdraw: -10 attack cooldown", 200, 140);
+        text("(2) Quickdraw: -10% attack cooldown", 200, 140);
         text("(3) Sharp Arrows: +1 pierce", 200, 160);
         
         switch (upgradeChoice) {
@@ -234,9 +233,9 @@ public class MySketch extends PApplet {
                 combatActive = true;
                 upgradeChoice = 0; // reset upgrade choice
             }
-            case 2 -> { // -10 frames attack cooldown
+            case 2 -> { // -10% frames attack cooldown
                 int attackSpeed = ((PlayerCharacter)Player).getAttackSpeed();
-                ((PlayerCharacter)Player).setAttackSpeed(attackSpeed - 10);
+                ((PlayerCharacter)Player).setAttackSpeed(round((float) (attackSpeed * 0.9)));
                 combatActive = true;
                 upgradeChoice = 0; // reset upgrade choice
             }
@@ -322,6 +321,13 @@ public class MySketch extends PApplet {
                 case 3 -> { // super tanky enemy
                     if (score > 1500) {
                         enemiesList.add(new Character(this, 700, spawnY, "SuperMegaSun", new StatBlock(5, 1), "images/Enemy_Sun.png"));
+                    } else { // otherwise spawn a basic enemy if score is too low
+                        enemiesList.add(new Character(this, 700, spawnY, "Sun", new StatBlock(1, 1), "images/Enemy_Sun.png"));
+                    }
+                }
+                case 4 -> { // super ultra mega enemy
+                    if (score > 3000) {
+                        enemiesList.add(new Character(this, 700, spawnY, "VolatileSun", new StatBlock(8, 3), "images/Enemy_Sun.png"));
                     } else { // otherwise spawn a basic enemy if score is too low
                         enemiesList.add(new Character(this, 700, spawnY, "Sun", new StatBlock(1, 1), "images/Enemy_Sun.png"));
                     }

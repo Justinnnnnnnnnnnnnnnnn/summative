@@ -35,10 +35,10 @@ public class PlayerCharacter extends Character {
      * @param attackSpeed new attack speed in frame cooldown
      */
     public void setAttackSpeed(int attackSpeed) {
-        if (attackSpeed > this.attackSpeed - 6) {
-            this.attackSpeed = attackSpeed;
+        if (attackSpeed < 12) {
+            this.attackSpeed = 12;
         } else {
-            this.attackSpeed = 6;
+            this.attackSpeed = attackSpeed;
         }
     }
     
